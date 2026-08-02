@@ -45,8 +45,10 @@ const schema = a.schema({
       status: a.string().required(),
       stripeSessionId: a.string(),
     })
+    // No guest access: invoices contain customer PII (name, vehicle, totals).
+    // Public invoice lookup for /pay goes through the server route, which reads
+    // with a privileged server credential — not client-side guest access.
     .authorization((allow) => [
-      allow.guest().to(["read"]),
       allow.authenticated().to(["create", "read", "update", "delete"]),
     ]),
 });
