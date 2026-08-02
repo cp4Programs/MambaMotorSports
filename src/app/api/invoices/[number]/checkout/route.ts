@@ -25,7 +25,19 @@ export async function POST(
   const base = appBaseUrl(req);
 
   // Dev / pre-Stripe mode: mark paid and return success URL so the flow is testable.
+  // This settles invoices WITHOUT payment, so it requires an explicit opt-in
+  // (ALLOW_DEV_PAYMENTS=true) and is force-disabled in production. A missing
+  // Stripe key must never let invoices be settled for free — fail closed.
   if (!stripe) {
+    const devPaymentsAllowed =
+      process.env.NODE_ENV !== "production" &&
+      process.env.ALLOW_DEV_PAYMENTS === "true";
+    if (!devPaymentsAllowed) {
+      return NextResponse.json(
+        { error: "Payments are not configured." },
+        { status: 503 },
+      );
+    }
     await markInvoicePaid(number, `dev_${Date.now()}`);
     return NextResponse.json({
       url: `${base}/pay/success?invoice=${encodeURIComponent(number)}`,
