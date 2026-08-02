@@ -63,15 +63,28 @@ See [`.env.example`](.env.example). In Amplify Console → App settings → Envi
 
 Point Stripe webhooks to `https://<your-domain>/api/webhooks/stripe` for `checkout.session.completed`.
 
+## Create the GitHub repo
+
+If `gh` auth is expired, refresh it once:
+
+```bash
+gh auth login -h github.com
+```
+
+Then from this directory:
+
+```bash
+gh repo create MambaMotorSports --private --source=. --remote=origin --push
+```
+
 ## Deploy on AWS Amplify (Vercel-like)
 
-1. Push this repo to GitHub (private recommended).
+1. Push this repo to GitHub (command above).
 2. AWS Console → **Amplify** → **Create new app** → **Host web app** → connect GitHub → select `MambaMotorSports`.
 3. Amplify auto-detects Next.js; [`amplify.yml`](amplify.yml) deploys the Gen 2 backend then builds the frontend.
-4. Add environment variables / secrets once.
-5. Every `git push` to the connected branch redeploys.
-
-Create the Cognito owner user after the first backend deploy (Amplify Console → Auth, or Cognito console).
+4. Add environment variables / secrets once (see list above). Also set `DATA_BACKEND=amplify` for production.
+5. After the first deploy, copy generated outputs into the app if needed, or rely on `ampx generate outputs` in CI. Create the Cognito owner user in the Auth / Cognito console.
+6. Every `git push` to the connected branch redeploys — same mental model as Vercel.
 
 ## Project layout
 
