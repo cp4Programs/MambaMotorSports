@@ -44,5 +44,5 @@ next-env.d.ts
 amplify_outputs*
 amplifyconfiguration*
 
-# local data store
+# local persistence
 .data

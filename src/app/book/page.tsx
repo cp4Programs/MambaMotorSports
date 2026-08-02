@@ -1,22 +1,26 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
-import { BookingForm } from "@/components/BookingForm";
-import { SectionHeading } from "@/components/ui";
+import { BookForm } from "@/components/BookForm";
 
-export const metadata = {
-  title: "Book a Service",
+export const metadata: Metadata = {
+  title: "Book an Appointment",
 };
 
 export default function BookPage() {
   return (
-    <div className="bg-[oklch(93%_0.004_260)] px-[6vw] py-16">
-      <SectionHeading className="mb-3 text-panel-text">Book a Service</SectionHeading>
-      <p className="mb-10 max-w-2xl text-panel-muted">
-        Tell us about your car and preferred time. We&apos;ll confirm your
-        appointment by email.
-      </p>
-      <Suspense fallback={<div className="text-panel-muted">Loading form…</div>}>
-        <BookingForm />
-      </Suspense>
+    <div className="min-h-[70vh] bg-[oklch(93%_0.006_260)] px-[6vw] py-[72px] text-[oklch(20%_0.015_260)]">
+      <div className="mx-auto max-w-[640px]">
+        <h1 className="font-display mb-2.5 text-[clamp(1.8rem,3.4vw,2.6rem)] font-bold">
+          Book an Appointment
+        </h1>
+        <p className="mb-9 text-[15px] text-[oklch(40%_0.015_260)]">
+          Tell us about your vehicle and what&apos;s going on — we&apos;ll confirm a
+          time shortly.
+        </p>
+        <Suspense fallback={<p>Loading form…</p>}>
+          <BookForm />
+        </Suspense>
+      </div>
     </div>
   );
 }

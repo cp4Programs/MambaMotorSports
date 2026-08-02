@@ -1,23 +1,14 @@
-"use client";
-
-import { Amplify } from "aws-amplify";
-
-let configured = false;
-
-export async function configureAmplify() {
-  if (configured || typeof window === "undefined") return;
-  configured = true;
-
+/**
+ * Amplify client bootstrap.
+ * After `npx ampx sandbox` or Amplify Hosting deploy, copy/generate amplify_outputs.json
+ * at the project root and configure the client (Auth + Data) from that file.
+ */
+export function isAmplifyConfigured(): boolean {
   try {
-    const res = await fetch("/amplify_outputs.json", { cache: "no-store" });
-    if (!res.ok) return;
-    const outputs = await res.json();
-    Amplify.configure(outputs, { ssr: true });
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    require("../../amplify_outputs.json");
+    return true;
   } catch {
-    // Cognito UI will stay unavailable until amplify_outputs.json is published.
+    return false;
   }
-}
-
-export function hasAmplifyOutputsSync() {
-  return false;
 }

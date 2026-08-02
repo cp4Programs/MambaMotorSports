@@ -1,66 +1,52 @@
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
-import type { BookingRecord, ContactRecord } from "@/server/types";
 
-function shopInbox() {
-  return process.env.SHOP_NOTIFY_EMAIL || process.env.SES_FROM_EMAIL || "";
+function notifyTo() {
+  return process.env.NOTIFY_EMAIL || process.env.OWNER_EMAIL || "";
 }
 
 function fromAddress() {
-  return process.env.SES_FROM_EMAIL || shopInbox();
+  return process.env.SES_FROM_EMAIL || process.env.NOTIFY_EMAIL || "";
 }
 
-export async function notifyBooking(booking: BookingRecord) {
-  const to = shopInbox();
-  const subject = `New booking — ${booking.name} · ${booking.serviceType}`;
-  const body = [
-    `Name: ${booking.name}`,
-    `Phone: ${booking.phone}`,
-    `Email: ${booking.email}`,
-    `Vehicle: ${booking.year} ${booking.make} ${booking.model}`,
-    `Service: ${booking.serviceType}`,
-    `Preferred: ${booking.date} · ${booking.time}`,
-    ``,
-    `Issue:`,
-    booking.issue,
-  ].join("\n");
+export async function sendNotification(subject: string, body: string) {
+  const to = notifyTo();
+  const from = fromAddress();
 
-  await send(to, subject, body);
-}
-
-export async function notifyContact(message: ContactRecord) {
-  const to = shopInbox();
-  const subject = `New inquiry — ${message.name}`;
-  const body = [
-    `Name: ${message.name}`,
-    `Phone: ${message.phone || "n/a"}`,
-    `Email: ${message.email}`,
-    `Vehicle: ${message.vehicle || "n/a"}`,
-    ``,
-    `Message:`,
-    message.message,
-  ].join("\n");
-
-  await send(to, subject, body);
-}
-
-async function send(to: string, subject: string, body: string) {
-  if (!to || !fromAddress() || process.env.EMAIL_MODE === "log") {
-    console.log("[email:log]", { to: to || "(unset)", subject, body });
-    return;
+  if (!to) {
+    console.info("[email:skipped] No NOTIFY_EMAIL configured");
+    console.info(subject, body);
+    return { skipped: true as const };
   }
 
-  const client = new SESClient({
-    region: process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || "us-west-2",
-  });
+  // Without SES credentials / verified identities, log and continue so forms still work.
+  if (!process.env.AWS_ACCESS_KEY_ID && !process.env.AWS_PROFILE && !process.env.AWS_REGION) {
+    console.info("[email:dev-log]", { to, subject, body });
+    return { skipped: true as const };
+  }
 
-  await client.send(
-    new SendEmailCommand({
-      Source: fromAddress(),
-      Destination: { ToAddresses: [to] },
-      Message: {
-        Subject: { Data: subject },
-        Body: { Text: { Data: body } },
-      },
-    }),
-  );
+  if (!from) {
+    console.info("[email:dev-log]", { to, subject, body });
+    return { skipped: true as const };
+  }
+
+  try {
+    const client = new SESClient({
+      region: process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || "us-west-2",
+    });
+    await client.send(
+      new SendEmailCommand({
+        Source: from,
+        Destination: { ToAddresses: [to] },
+        Message: {
+          Subject: { Data: subject },
+          Body: { Text: { Data: body } },
+        },
+      }),
+    );
+    return { skipped: false as const };
+  } catch (err) {
+    console.error("[email:error]", err);
+    console.info("[email:fallback-log]", { to, subject, body });
+    return { skipped: true as const };
+  }
 }

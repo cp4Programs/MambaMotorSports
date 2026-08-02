@@ -7,10 +7,11 @@ backend:
         - npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID
 frontend:
   phases:
-    build:
+    preBuild:
       commands:
         - npm ci --cache .npm --prefer-offline
-        - npx ampx generate outputs --branch $AWS_BRANCH --app-id $AWS_APP_ID || true
+    build:
+      commands:
         - npm run build
   artifacts:
     baseDirectory: .next

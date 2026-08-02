@@ -2,15 +2,14 @@
 
 Website for Mamba Motor Sports — BMW · Audi · Mercedes-Benz specialists serving Los Angeles & Orange County.
 
-Built with **Next.js** (App Router) and deployed on **AWS Amplify Hosting** (git-push deploys, closest AWS equivalent to Vercel). Backend resources (Cognito + DynamoDB via Amplify Data) live in the `amplify/` folder. Forms, invoice pay, and the owner dashboard use Next.js Route Handlers under `src/app/api/` and server modules in `src/server/`.
+Stack: **Next.js (App Router)** + **AWS Amplify Hosting / Gen 2** + **Stripe** for invoice payments.
 
 ## Features
 
-- Marketing pages: Home, Services, About
-- Book a Service → persisted + email notify
-- Contact → persisted + email notify
-- Pay Invoice → Stripe Checkout (demo mode without keys)
-- Owner Dashboard → inquiries / appointments / invoices
+- Public site: Home, Services, About, Book, Contact, Pay Invoice
+- Booking & contact forms persist submissions and email the shop (SES when configured)
+- Invoice lookup + Stripe Checkout (dev fallback without Stripe keys)
+- Owner dashboard (appointments, inquiries, invoices)
 
 ## Local development
 
@@ -22,84 +21,67 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-### Demo credentials & invoices
+Default owner login (change via env):
 
-| Item | Value |
-|------|--------|
-| Owner login (local) | any email + password `mamba-owner` |
-| Demo invoices | `MMS-1042`, `MMS-1077` |
+- Email: `owner@mambamotorsports.com`
+- Password: `mamba-owner-dev`
 
-Without Stripe keys, **Pay Now** marks the invoice paid in the local store and redirects with `?success=1`.
+Demo invoices: `MMS-1042`, `MMS-1077`
 
-Without SES config (`EMAIL_MODE=log`), booking/contact emails print to the server console.
+Local data is stored under `.data/store.json` until Amplify Data is deployed and wired.
 
-Local data is stored in `.data/store.json` (gitignored).
+### Amplify sandbox (backend)
 
-## Amplify Gen 2 backend (optional locally)
+Requires AWS credentials configured (`aws configure` or SSO).
 
 ```bash
-npx ampx sandbox
+npm run sandbox
 ```
 
-This provisions Cognito + AppSync/DynamoDB and writes `amplify_outputs.json`. Then:
-
-1. Copy outputs for the browser: `cp amplify_outputs.json public/amplify_outputs.json`
-2. Set in `.env.local`:
-   - `DATA_BACKEND=amplify`
-   - `COGNITO_USER_POOL_ID` / `COGNITO_CLIENT_ID` from the outputs
-3. Create an owner user in the Cognito user pool
-4. `npm run seed` to seed demo invoices into Amplify Data
-
-## Environment variables
-
-See [`.env.example`](.env.example). In Amplify Console → App settings → Environment variables / Secrets, set at least:
-
-- `NEXT_PUBLIC_APP_URL` — Amplify app URL
-- `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
-- `SES_FROM_EMAIL`, `SHOP_NOTIFY_EMAIL` (verified in SES)
-- `DATA_BACKEND=amplify` for production
-- `COGNITO_USER_POOL_ID`, `COGNITO_CLIENT_ID`, `AWS_REGION`
-- `EMAIL_MODE` — omit or unset for real SES; `log` for console only
-
-Point Stripe webhooks to `https://<your-domain>/api/webhooks/stripe` for `checkout.session.completed`.
-
-## Create the GitHub repo
-
-If `gh` auth is expired, refresh it once:
-
-```bash
-gh auth login -h github.com
-```
-
-Then from this directory:
-
-```bash
-gh repo create MambaMotorSports --private --source=. --remote=origin --push
-```
+This provisions Cognito + Amplify Data from `amplify/` and writes `amplify_outputs.json`.
 
 ## Deploy on AWS Amplify (Vercel-like)
 
-1. Push this repo to GitHub (command above).
-2. AWS Console → **Amplify** → **Create new app** → **Host web app** → connect GitHub → select `MambaMotorSports`.
-3. Amplify auto-detects Next.js; [`amplify.yml`](amplify.yml) deploys the Gen 2 backend then builds the frontend.
-4. Add environment variables / secrets once (see list above). Also set `DATA_BACKEND=amplify` for production.
-5. After the first deploy, copy generated outputs into the app if needed, or rely on `ampx generate outputs` in CI. Create the Cognito owner user in the Auth / Cognito console.
-6. Every `git push` to the connected branch redeploys — same mental model as Vercel.
+Amplify Hosting is the closest git-push deploy experience on AWS.
+
+1. Push this repo to GitHub (see below).
+2. Open [AWS Amplify Console](https://console.aws.amazon.com/amplify/) → **Create new app** → **Host web app**.
+3. Connect the GitHub repo and branch (`main`).
+4. Amplify uses [`amplify.yml`](amplify.yml) for Next.js + Gen 2 backend deploy.
+5. In **Environment variables / Secrets**, set at least:
+
+| Variable | Purpose |
+|----------|---------|
+| `OWNER_EMAIL` | Dashboard login email |
+| `OWNER_PASSWORD` | Dashboard login password |
+| `OWNER_SESSION_SECRET` | Session signing secret |
+| `NOTIFY_EMAIL` | Inbox for booking/contact alerts |
+| `SES_FROM_EMAIL` | Verified SES sender |
+| `AWS_REGION` | e.g. `us-west-2` |
+| `STRIPE_SECRET_KEY` | Stripe secret |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
+| `NEXT_PUBLIC_APP_URL` | Amplify app URL (or custom domain) |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key |
+
+6. After first deploy, point a Stripe webhook to `https://<your-app>/api/webhooks/stripe` for `checkout.session.completed`.
+7. Create the Cognito owner user (optional, for Amplify Auth) after the Gen 2 backend deploys, or keep using `OWNER_*` env credentials for the dashboard API.
+
+Subsequent launches: **git push** → Amplify rebuilds automatically.
 
 ## Project layout
 
 ```
-amplify/                 Amplify Gen 2 auth + data
-src/app/                 Pages + API route handlers
-src/components/          UI (nav, forms, dashboard)
-src/lib/data.ts          Services, testimonials, copy
-src/server/              Booking/contact/invoice/email/stripe
-public/                  Logo + amplify_outputs (after sandbox)
+amplify/                 Amplify Gen 2 (Cognito + Data models)
+src/app/                 Pages + Route Handlers
+src/components/          UI
+src/lib/                 Shared content + Amplify helpers
+src/server/              Express-like server modules (repo, auth, email, stripe)
+public/                  Logo & static assets
 ```
 
-## Stack
+## GitHub
 
-- Next.js 15 + TypeScript + Tailwind CSS 4
-- AWS Amplify Hosting + Amplify Gen 2 (Cognito, DynamoDB/AppSync)
-- Amazon SES (notifications)
-- Stripe Checkout (invoice payments)
+```bash
+gh auth login   # if token is invalid
+gh repo create MambaMotorSports --private --source=. --remote=origin --push
+```

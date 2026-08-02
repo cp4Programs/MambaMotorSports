@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { Label, TextInput } from "@/components/ui";
 
 type InvoiceItem = { desc: string; amt: number };
 
@@ -31,8 +30,8 @@ export function PayInvoice() {
       const number = input.trim().toUpperCase();
       const res = await fetch(`/api/invoices/${encodeURIComponent(number)}`);
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Invoice not found.");
-      setResult(data.invoice);
+      if (!res.ok) throw new Error(data.error || "Invoice not found");
+      setResult(data);
     } catch (err) {
       setError(
         err instanceof Error
@@ -54,98 +53,87 @@ export function PayInvoice() {
         { method: "POST" },
       );
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Could not start checkout.");
+      if (!res.ok) throw new Error(data.error || "Could not start checkout");
       if (data.url) {
         window.location.href = data.url;
         return;
       }
-      throw new Error("No checkout URL returned.");
+      throw new Error("No checkout URL returned");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Payment failed to start.");
+      setError(err instanceof Error ? err.message : "Payment failed");
       setPaying(false);
     }
   }
 
   return (
-    <div className="rounded-[10px] border border-panel-border bg-panel p-8 text-panel-text">
-      <p className="mb-9 text-[15px] text-panel-muted">
-        Enter your invoice number to view and pay your balance securely. Demo
-        invoices: <strong>MMS-1042</strong> or <strong>MMS-1077</strong>.
-      </p>
-
-      <form onSubmit={lookup} className="mb-8 flex flex-wrap gap-3">
-        <div className="min-w-[220px] flex-[1_1_220px]">
-          <Label>Invoice number</Label>
-          <TextInput
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Invoice number, e.g. MMS-1042"
-          />
-        </div>
-        <div className="flex items-end">
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-[4px] bg-purple-deep px-6 py-3 text-sm font-bold text-fg hover:bg-purple disabled:opacity-60"
-          >
-            {loading ? "Looking up…" : "Look up"}
-          </button>
-        </div>
+    <div>
+      <form onSubmit={lookup} className="mb-6 flex flex-wrap gap-3">
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Invoice number, e.g. MMS-1042"
+          className="min-w-[220px] flex-1 rounded-[5px] border border-[oklch(80%_0.006_260)] px-3.5 py-3.5 text-[15px] text-[oklch(20%_0.015_260)]"
+        />
+        <button
+          type="submit"
+          disabled={loading}
+          className="rounded-[5px] bg-[oklch(20%_0.015_260)] px-[26px] py-3.5 text-sm font-bold text-[oklch(97%_0.004_260)] disabled:opacity-60"
+        >
+          {loading ? "Looking up…" : "Look Up"}
+        </button>
       </form>
 
-      {error ? <p className="mb-6 text-sm text-[oklch(45%_0.19_25)]">{error}</p> : null}
+      {error ? (
+        <p className="mb-5 text-sm font-semibold text-[oklch(50%_0.19_25)]">{error}</p>
+      ) : null}
 
       {result ? (
-        <div className="rounded-[8px] border border-panel-border p-6">
-          {result.status === "Paid" ? (
+        <div className="rounded-[10px] border border-[oklch(85%_0.006_260)] bg-[oklch(93%_0.006_260)] p-7">
+          <div className="mb-5 flex flex-wrap justify-between gap-2">
             <div>
-              <h2 className="mb-2 font-display text-xl font-semibold text-[oklch(40%_0.1_155)]">
-                Paid in full
-              </h2>
-              <p className="text-panel-muted">
-                Invoice {result.number} is already paid. A receipt was emailed
-                when payment cleared.
-              </p>
-            </div>
-          ) : (
-            <>
-              <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
-                <div>
-                  <div className="font-display text-xl font-semibold">
-                    Invoice {result.number}
-                  </div>
-                  <div className="text-sm text-panel-muted">
-                    {result.customer} · {result.vehicle}
-                  </div>
-                </div>
-                <div className="font-display text-2xl font-bold text-[oklch(45%_0.09_85)]">
-                  ${result.total.toFixed(2)}
-                </div>
+              <div className="font-display text-lg font-bold">
+                Invoice {result.number}
               </div>
-              <ul className="mb-4 space-y-2 border-y border-panel-border py-4">
-                {result.items.map((item) => (
-                  <li
-                    key={`${item.desc}-${item.amt}`}
-                    className="flex justify-between gap-4 text-sm"
-                  >
-                    <span>{item.desc}</span>
-                    <span>${item.amt.toFixed(2)}</span>
-                  </li>
-                ))}
-                <li className="flex justify-between gap-4 text-sm text-panel-muted">
-                  <span>Tax</span>
-                  <span>${result.tax.toFixed(2)}</span>
-                </li>
-              </ul>
-              <button
-                type="button"
-                onClick={pay}
-                disabled={paying}
-                className="rounded-[4px] bg-orange px-8 py-4 text-base font-bold text-fg hover:bg-orange-hover disabled:opacity-60"
+              <div className="text-[13px] text-[oklch(40%_0.015_260)]">
+                {result.customer} · {result.vehicle}
+              </div>
+            </div>
+            <span className="h-fit rounded-full bg-[oklch(93%_0.03_85)] px-2.5 py-1 text-xs font-semibold text-[oklch(45%_0.09_85)]">
+              {result.status}
+            </span>
+          </div>
+          <div className="mb-2 border-t border-[oklch(85%_0.006_260)] pt-4">
+            {result.items.map((li) => (
+              <div
+                key={li.desc}
+                className="flex justify-between py-2 text-sm"
               >
-                {paying ? "Redirecting to Stripe…" : "Pay Now"}
-              </button>
-            </>
+                <span>{li.desc}</span>
+                <span className="font-semibold">${li.amt}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between border-t border-[oklch(85%_0.006_260)] pt-3 text-sm text-[oklch(40%_0.015_260)]">
+            <span>Tax</span>
+            <span>${result.tax}</span>
+          </div>
+          <div className="mb-6 flex justify-between pt-3 text-[19px] font-bold">
+            <span>Total Due</span>
+            <span>${result.total}</span>
+          </div>
+          {result.status === "Paid" ? (
+            <p className="text-sm font-semibold text-[oklch(40%_0.1_155)]">
+              This invoice is already paid in full.
+            </p>
+          ) : (
+            <button
+              type="button"
+              onClick={pay}
+              disabled={paying}
+              className="w-full rounded-[5px] bg-[oklch(50%_0.19_25)] py-4 text-[15px] font-bold text-[oklch(97%_0.004_260)] hover:bg-[oklch(43%_0.19_25)] disabled:opacity-60"
+            >
+              {paying ? "Redirecting…" : `Pay $${result.total} Now`}
+            </button>
           )}
         </div>
       ) : null}

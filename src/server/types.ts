@@ -1,6 +1,4 @@
-export type InvoiceItem = { desc: string; amt: number };
-
-export type BookingRecord = {
+export type Booking = {
   id: string;
   name: string;
   phone: string;
@@ -16,18 +14,23 @@ export type BookingRecord = {
   createdAt: string;
 };
 
-export type ContactRecord = {
+export type ContactMessage = {
   id: string;
   name: string;
-  phone?: string;
+  phone: string;
   email: string;
-  vehicle?: string;
+  vehicle: string;
   message: string;
   status: string;
   createdAt: string;
 };
 
-export type InvoiceRecord = {
+export type InvoiceItem = {
+  desc: string;
+  amt: number;
+};
+
+export type Invoice = {
   id: string;
   number: string;
   customer: string;
@@ -38,14 +41,4 @@ export type InvoiceRecord = {
   status: "Pending" | "Paid" | "Overdue";
   stripeSessionId?: string;
   createdAt: string;
-};
-
-export type PublicInvoice = {
-  number: string;
-  customer: string;
-  vehicle: string;
-  items: InvoiceItem[];
-  tax: number;
-  total: number;
-  status: string;
 };

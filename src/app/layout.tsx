@@ -23,9 +23,6 @@ export const metadata: Metadata = {
   },
   description:
     "Precision diagnostics and transparent pricing for BMW, Audi, and Mercedes-Benz in Los Angeles & Orange County.",
-  icons: {
-    icon: "/mambaMotorSportsLogo.jpg",
-  },
 };
 
 export default function RootLayout({
@@ -36,9 +33,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${oswald.variable} ${inter.variable} antialiased`}>
-        <div className="min-h-screen overflow-x-hidden bg-bg text-fg">
+        <div className="flex min-h-screen flex-col overflow-x-hidden bg-[oklch(21%_0.018_255)] text-[oklch(97%_0.004_260)]">
           <Nav />
-          <main>{children}</main>
+          <main className="flex-1">{children}</main>
           <Footer />
         </div>
       </body>

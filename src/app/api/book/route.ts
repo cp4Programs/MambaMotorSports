@@ -1,39 +1,42 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { notifyBooking } from "@/server/email";
-import { createBooking } from "@/server/repository";
+import { sendNotification } from "@/server/email";
+import { createBooking } from "@/server/repo";
 
 const schema = z.object({
   name: z.string().min(1),
   phone: z.string().min(1),
   email: z.string().email(),
   make: z.string().min(1),
-  model: z.string().min(1),
-  year: z.string().min(1),
+  model: z.string().optional().default(""),
+  year: z.string().optional().default(""),
   serviceType: z.string().min(1),
-  date: z.string().min(1),
-  time: z.string().min(1),
-  issue: z.string().min(1),
+  date: z.string().optional().default(""),
+  time: z.string().optional().default(""),
+  issue: z.string().optional().default(""),
 });
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    const body = schema.parse(await request.json());
+    const body = schema.parse(await req.json());
     const booking = await createBooking(body);
-    await notifyBooking(booking);
+    await sendNotification(
+      `New booking: ${booking.serviceType} — ${booking.name}`,
+      [
+        `Name: ${booking.name}`,
+        `Phone: ${booking.phone}`,
+        `Email: ${booking.email}`,
+        `Vehicle: ${booking.year} ${booking.make} ${booking.model}`.trim(),
+        `Service: ${booking.serviceType}`,
+        `Preferred: ${booking.date || "n/a"} ${booking.time || ""}`.trim(),
+        `Issue: ${booking.issue || "n/a"}`,
+        `Status: ${booking.status}`,
+        `ID: ${booking.id}`,
+      ].join("\n"),
+    );
     return NextResponse.json({ ok: true, id: booking.id });
   } catch (err) {
-    const status = err instanceof z.ZodError ? 400 : 500;
-    return NextResponse.json(
-      {
-        error:
-          err instanceof z.ZodError
-            ? "Please fill out all required fields."
-            : err instanceof Error
-              ? err.message
-              : "Invalid booking",
-      },
-      { status },
-    );
+    const message = err instanceof Error ? err.message : "Invalid request";
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }

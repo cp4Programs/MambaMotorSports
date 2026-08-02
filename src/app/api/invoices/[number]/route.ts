@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { getPublicInvoice } from "@/server/repository";
+import { getInvoiceByNumber } from "@/server/repo";
 
 export async function GET(
-  _request: Request,
+  _req: Request,
   context: { params: Promise<{ number: string }> },
 ) {
   const { number } = await context.params;
-  const invoice = await getPublicInvoice(number.trim().toUpperCase());
+  const invoice = await getInvoiceByNumber(decodeURIComponent(number));
   if (!invoice) {
     return NextResponse.json(
       {
@@ -15,5 +15,13 @@ export async function GET(
       { status: 404 },
     );
   }
-  return NextResponse.json({ invoice });
+  return NextResponse.json({
+    number: invoice.number,
+    customer: invoice.customer,
+    vehicle: invoice.vehicle,
+    items: invoice.items,
+    tax: invoice.tax,
+    total: invoice.total,
+    status: invoice.status,
+  });
 }

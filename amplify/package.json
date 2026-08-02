@@ -1,3 +1,5 @@
 {
-  "type": "module"
+  "name": "mamba-motor-sports-amplify",
+  "type": "module",
+  "version": "1.0.0"
 }

@@ -7,16 +7,16 @@ const schema = a.schema({
       phone: a.string().required(),
       email: a.email().required(),
       make: a.string().required(),
-      model: a.string().required(),
-      year: a.string().required(),
+      model: a.string(),
+      year: a.string(),
       serviceType: a.string().required(),
-      date: a.string().required(),
-      time: a.string().required(),
-      issue: a.string().required(),
+      date: a.string(),
+      time: a.string(),
+      issue: a.string(),
       status: a.string().required(),
     })
     .authorization((allow) => [
-      allow.publicApiKey().to(["create"]),
+      allow.guest().to(["create"]),
       allow.authenticated().to(["read", "update", "delete"]),
     ]),
 
@@ -30,7 +30,7 @@ const schema = a.schema({
       status: a.string().required(),
     })
     .authorization((allow) => [
-      allow.publicApiKey().to(["create"]),
+      allow.guest().to(["create"]),
       allow.authenticated().to(["read", "update", "delete"]),
     ]),
 
@@ -46,10 +46,9 @@ const schema = a.schema({
       stripeSessionId: a.string(),
     })
     .authorization((allow) => [
-      allow.publicApiKey().to(["read"]),
+      allow.guest().to(["read"]),
       allow.authenticated().to(["create", "read", "update", "delete"]),
-    ])
-    .secondaryIndexes((index) => [index("number")]),
+    ]),
 });
 
 export type Schema = ClientSchema<typeof schema>;
@@ -57,9 +56,9 @@ export type Schema = ClientSchema<typeof schema>;
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: "apiKey",
+    defaultAuthorizationMode: "identityPool",
     apiKeyAuthorizationMode: {
-      expiresInDays: 365,
+      expiresInDays: 30,
     },
   },
 });

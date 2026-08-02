@@ -1,19 +1,8 @@
 /**
- * Seeds demo invoices into Amplify Data when DATA_BACKEND=amplify.
- * Local store already seeds on first write.
+ * Demo invoices are seeded automatically into .data/store.json on first local API use.
+ * After Amplify Data is deployed, create the same invoices via the Amplify console
+ * or a one-off authenticated mutation (MMS-1042, MMS-1077, MMS-0988, MMS-0951).
  */
-import { seedInvoicesAmplify } from "../src/server/amplify-data";
-
-async function main() {
-  if (process.env.DATA_BACKEND !== "amplify") {
-    console.log("Local store seeds automatically on first API use. Nothing to do.");
-    return;
-  }
-  await seedInvoicesAmplify();
-  console.log("Seeded Amplify invoices MMS-1042 and MMS-1077 (if missing).");
-}
-
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+console.log(
+  "Local store seeds demo invoices on first API use (MMS-1042, MMS-1077, …).",
+);

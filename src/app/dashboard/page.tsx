@@ -1,15 +1,15 @@
-import { Dashboard } from "@/components/Dashboard";
-import { SectionHeading } from "@/components/ui";
+import type { Metadata } from "next";
+import { OwnerDashboard } from "@/components/OwnerDashboard";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Owner Dashboard",
+  robots: { index: false, follow: false },
 };
 
 export default function DashboardPage() {
   return (
-    <div className="bg-[oklch(93%_0.004_260)] px-[6vw] py-16">
-      <SectionHeading className="mb-8 text-panel-text">Dashboard</SectionHeading>
-      <Dashboard />
+    <div className="min-h-[70vh] bg-[oklch(93%_0.006_260)] text-[oklch(20%_0.015_260)]">
+      <OwnerDashboard />
     </div>
   );
 }

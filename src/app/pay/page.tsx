@@ -1,33 +1,23 @@
+import type { Metadata } from "next";
 import { PayInvoice } from "@/components/PayInvoice";
-import { SectionHeading } from "@/components/ui";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Pay Invoice",
 };
 
-export default async function PayPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ success?: string; canceled?: string }>;
-}) {
-  const params = await searchParams;
-
+export default function PayPage() {
   return (
-    <div className="bg-[oklch(93%_0.004_260)] px-[6vw] py-16">
-      <SectionHeading className="mb-3 text-panel-text">Pay Invoice</SectionHeading>
-      {params.success ? (
-        <p className="mb-6 rounded-[8px] border border-[oklch(80%_0.05_155)] bg-[oklch(96%_0.03_155)] px-4 py-3 text-sm text-[oklch(35%_0.1_155)]">
-          Payment received. Stripe will email a receipt, and your invoice status
-          will update shortly.
+    <div className="min-h-[70vh] bg-[oklch(97%_0.004_260)] px-[6vw] py-[72px] text-[oklch(20%_0.015_260)]">
+      <div className="mx-auto max-w-[560px]">
+        <h1 className="font-display mb-2.5 text-[clamp(1.8rem,3.4vw,2.6rem)] font-bold">
+          Pay Invoice
+        </h1>
+        <p className="mb-9 text-[15px] text-[oklch(40%_0.015_260)]">
+          Enter your invoice number to view and pay your balance securely. Try{" "}
+          <strong>MMS-1042</strong> or <strong>MMS-1077</strong>.
         </p>
-      ) : null}
-      {params.canceled ? (
-        <p className="mb-6 rounded-[8px] border border-[oklch(80%_0.05_25)] bg-[oklch(96%_0.03_25)] px-4 py-3 text-sm text-[oklch(40%_0.15_25)]">
-          Checkout canceled — your invoice is still unpaid. You can try again
-          anytime.
-        </p>
-      ) : null}
-      <PayInvoice />
+        <PayInvoice />
+      </div>
     </div>
   );
 }

@@ -4,12 +4,6 @@ export type Service = {
   price: string;
 };
 
-export type Testimonial = {
-  name: string;
-  car: string;
-  quote: string;
-};
-
 export const SERVICES: Service[] = [
   {
     name: "Oil & Fluid Service",
@@ -48,7 +42,7 @@ export const SERVICES: Service[] = [
   },
 ];
 
-export const TESTIMONIALS: Testimonial[] = [
+export const TESTIMONIALS = [
   {
     name: "Dana R.",
     car: "BMW X5",
@@ -74,13 +68,11 @@ export const MAKES = ["BMW", "Audi", "Mercedes-Benz", "Other"] as const;
 export const TIME_SLOTS = [
   "Morning (8-11am)",
   "Midday (11am-2pm)",
-  "Afternoon (2-6pm)",
+  "Afternoon (2-5pm)",
 ] as const;
 
 export const HOURS = {
-  weekdays: "Mon–Fri 8am–6pm",
-  saturday: "Sat 9am–3pm",
-  sunday: "Sun Closed",
+  weekdays: "Mon – Fri: 8am – 6pm",
+  saturday: "Saturday: 9am – 3pm",
+  sunday: "Sunday: Closed",
 };
-
-export const REGION = "Los Angeles & Orange County";
