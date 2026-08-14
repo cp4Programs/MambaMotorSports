@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { BookForm } from "@/components/BookForm";
+import { loadPublishedSite } from "@/server/published-site";
 
 export const metadata: Metadata = {
   title: "Book an Appointment",
 };
 
-export default function BookPage() {
+export default async function BookPage() {
+  const { services } = await loadPublishedSite();
+  const serviceNames = services.map((s) => s.name);
   return (
     <div className="min-h-[70vh] bg-[oklch(93%_0.006_260)] px-[6vw] py-[72px] text-[oklch(20%_0.015_260)]">
       <div className="mx-auto max-w-[640px]">
@@ -18,7 +21,7 @@ export default function BookPage() {
           time shortly.
         </p>
         <Suspense fallback={<p>Loading form…</p>}>
-          <BookForm />
+          <BookForm serviceNames={serviceNames} />
         </Suspense>
       </div>
     </div>
