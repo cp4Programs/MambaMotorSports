@@ -31,7 +31,7 @@ import type { SiteCopy, SiteService } from "@/lib/site";
 import type { SiteImageRecord } from "./site-utils";
 import type { Booking, ContactMessage, Invoice } from "./types";
 
-function useAmplify(): boolean {
+function amplifyDataEnabled(): boolean {
   return hasAmplifyData();
 }
 
@@ -78,21 +78,21 @@ export async function setInvoiceSession(
 }
 
 export async function getSiteCopy(): Promise<SiteCopy> {
-  return useAmplify() ? amplifyGetSiteCopy() : localGetSiteCopy();
+  return amplifyDataEnabled() ? amplifyGetSiteCopy() : localGetSiteCopy();
 }
 
 export async function saveSiteCopy(copy: SiteCopy): Promise<SiteCopy> {
-  return useAmplify() ? amplifySaveSiteCopy(copy) : localSaveSiteCopy(copy);
+  return amplifyDataEnabled() ? amplifySaveSiteCopy(copy) : localSaveSiteCopy(copy);
 }
 
 export async function listSiteServices(): Promise<SiteService[]> {
-  return useAmplify() ? amplifyListSiteServices() : localListSiteServices();
+  return amplifyDataEnabled() ? amplifyListSiteServices() : localListSiteServices();
 }
 
 export async function saveSiteServices(
   services: SiteService[],
 ): Promise<SiteService[]> {
-  return useAmplify()
+  return amplifyDataEnabled()
     ? amplifySaveSiteServices(services)
     : localSaveSiteServices(services);
 }
@@ -100,11 +100,11 @@ export async function saveSiteServices(
 export async function getSiteImage(
   slot: string,
 ): Promise<SiteImageRecord | null> {
-  return useAmplify() ? amplifyGetSiteImage(slot) : localGetSiteImage(slot);
+  return amplifyDataEnabled() ? amplifyGetSiteImage(slot) : localGetSiteImage(slot);
 }
 
 export async function listSiteImageSlots(): Promise<string[]> {
-  return useAmplify()
+  return amplifyDataEnabled()
     ? amplifyListSiteImageSlots()
     : localListSiteImageSlots();
 }
@@ -114,13 +114,13 @@ export async function saveSiteImage(
   contentType: string,
   dataBase64: string,
 ): Promise<void> {
-  return useAmplify()
+  return amplifyDataEnabled()
     ? amplifySaveSiteImage(slot, contentType, dataBase64)
     : localSaveSiteImage(slot, contentType, dataBase64);
 }
 
 export async function deleteSiteImage(slot: string): Promise<void> {
-  return useAmplify()
+  return amplifyDataEnabled()
     ? amplifyDeleteSiteImage(slot)
     : localDeleteSiteImage(slot);
 }
