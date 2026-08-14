@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ImagePlaceholder } from "@/components/ImagePlaceholder";
-import { SERVICES } from "@/lib/content";
+import { SitePhoto } from "@/components/SitePhoto";
+import { loadPublishedSite } from "@/server/published-site";
 
 export const metadata: Metadata = {
   title: "Services",
 };
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const { copy, services } = await loadPublishedSite();
   return (
     <div>
       <section className="bg-[radial-gradient(ellipse_at_80%_20%,oklch(32%_0.15_305_/_0.3),transparent_55%),oklch(16%_0.015_255)] px-[6vw] pb-14 pt-20">
@@ -15,22 +16,22 @@ export default function ServicesPage() {
           Services
         </h1>
         <p className="max-w-[640px] text-base leading-relaxed text-[oklch(78%_0.012_260)]">
-          Built around BMW, Audi, and Mercedes-Benz — factory-informed work with
-          straight answers on price.
+          {copy.servicePageIntro}
         </p>
       </section>
 
       <div className="px-[6vw] pb-10">
-        <ImagePlaceholder
+        <SitePhoto
+          slot="services-banner"
           label="Workshop / bay photo coming soon"
           className="h-[260px] w-full"
         />
       </div>
 
       <section className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6 px-[6vw] pb-24">
-        {SERVICES.map((svc) => (
+        {services.map((svc) => (
           <div
-            key={svc.name}
+            key={svc.id}
             className="flex flex-col rounded-[10px] border border-[oklch(34%_0.02_255)] bg-[oklch(27%_0.02_255)] p-7"
           >
             <h2 className="font-display mb-2.5 text-[19px] font-semibold">{svc.name}</h2>

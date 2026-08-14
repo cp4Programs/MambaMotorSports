@@ -1,8 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import { HOURS } from "@/lib/content";
+import { loadPublishedSite } from "@/server/published-site";
 
-export function Footer() {
+export async function Footer() {
+  const { copy } = await loadPublishedSite();
   return (
     <footer>
       <div className="flex flex-wrap justify-between gap-10 border-t border-[oklch(34%_0.02_255)] bg-[oklch(16%_0.015_255)] px-[6vw] pb-8 pt-14">
@@ -20,9 +21,21 @@ export function Footer() {
             </div>
           </div>
           <p className="text-[13px] leading-relaxed text-[oklch(78%_0.012_260)]">
-            Los Angeles &amp; Orange County
+            {copy.address || "Los Angeles & Orange County"}
             <br />
             BMW · Audi · Mercedes-Benz specialists
+            {copy.phone ? (
+              <>
+                <br />
+                {copy.phone}
+              </>
+            ) : null}
+            {copy.email ? (
+              <>
+                <br />
+                {copy.email}
+              </>
+            ) : null}
           </p>
         </div>
 
@@ -31,11 +44,11 @@ export function Footer() {
             HOURS
           </div>
           <div className="text-[13px] leading-[1.8] text-[oklch(78%_0.012_260)]">
-            {HOURS.weekdays}
+            {copy.hoursWeekdays}
             <br />
-            {HOURS.saturday}
+            {copy.hoursSaturday}
             <br />
-            {HOURS.sunday}
+            {copy.hoursSunday}
           </div>
         </div>
 

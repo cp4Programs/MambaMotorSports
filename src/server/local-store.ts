@@ -1,11 +1,17 @@
 import { promises as fs } from "fs";
 import path from "path";
+import { DEFAULT_SITE_COPY, defaultServices } from "@/lib/site";
+import type { SiteCopy, SiteService } from "@/lib/site";
+import { mergeSiteCopy, type SiteImageRecord } from "./site-utils";
 import type { Booking, ContactMessage, Invoice } from "./types";
 
 type StoreShape = {
   bookings: Booking[];
   contacts: ContactMessage[];
   invoices: Invoice[];
+  siteCopy?: SiteCopy;
+  siteServices?: SiteService[];
+  siteImages?: SiteImageRecord[];
 };
 
 const DATA_DIR = path.join(process.cwd(), ".data");
@@ -74,6 +80,9 @@ async function ensureStore(): Promise<StoreShape> {
       bookings: [],
       contacts: [],
       invoices: SEED_INVOICES,
+      siteCopy: DEFAULT_SITE_COPY,
+      siteServices: defaultServices(),
+      siteImages: [],
     };
     await fs.writeFile(STORE_PATH, JSON.stringify(initial, null, 2));
     return initial;
@@ -168,5 +177,79 @@ export async function localSetInvoiceSession(
   );
   if (idx < 0) return;
   store.invoices[idx].stripeSessionId = stripeSessionId;
+  await writeStore(store);
+}
+
+export async function localGetSiteCopy(): Promise<SiteCopy> {
+  const store = await ensureStore();
+  return mergeSiteCopy(store.siteCopy ?? DEFAULT_SITE_COPY);
+}
+
+export async function localSaveSiteCopy(copy: SiteCopy): Promise<SiteCopy> {
+  const store = await ensureStore();
+  store.siteCopy = mergeSiteCopy(copy);
+  await writeStore(store);
+  return store.siteCopy;
+}
+
+export async function localListSiteServices(): Promise<SiteService[]> {
+  const store = await ensureStore();
+  if (!store.siteServices?.length) {
+    store.siteServices = defaultServices();
+    await writeStore(store);
+  }
+  return [...store.siteServices].sort((a, b) => a.sortOrder - b.sortOrder);
+}
+
+export async function localSaveSiteServices(
+  services: SiteService[],
+): Promise<SiteService[]> {
+  const store = await ensureStore();
+  store.siteServices = services.map((s, i) => ({
+    id: s.id || `svc_${Date.now()}_${i}`,
+    name: s.name.trim(),
+    blurb: s.blurb.trim(),
+    price: s.price.trim(),
+    sortOrder: i,
+  }));
+  await writeStore(store);
+  return store.siteServices;
+}
+
+export async function localGetSiteImage(
+  slot: string,
+): Promise<SiteImageRecord | null> {
+  const store = await ensureStore();
+  return store.siteImages?.find((img) => img.slot === slot) ?? null;
+}
+
+export async function localListSiteImageSlots(): Promise<string[]> {
+  const store = await ensureStore();
+  return (store.siteImages ?? []).map((img) => img.slot);
+}
+
+export async function localSaveSiteImage(
+  slot: string,
+  contentType: string,
+  dataBase64: string,
+): Promise<void> {
+  const store = await ensureStore();
+  const images = store.siteImages ?? [];
+  const idx = images.findIndex((img) => img.slot === slot);
+  const row: SiteImageRecord = {
+    id: idx >= 0 ? images[idx].id : `img_${slot}`,
+    slot,
+    contentType,
+    dataBase64,
+  };
+  if (idx >= 0) images[idx] = row;
+  else images.push(row);
+  store.siteImages = images;
+  await writeStore(store);
+}
+
+export async function localDeleteSiteImage(slot: string): Promise<void> {
+  const store = await ensureStore();
+  store.siteImages = (store.siteImages ?? []).filter((img) => img.slot !== slot);
   await writeStore(store);
 }

@@ -51,6 +51,31 @@ const schema = a.schema({
     .authorization((allow) => [
       allow.authenticated().to(["create", "read", "update", "delete"]),
     ]),
+
+  // Public-site CMS. Mutations go through Next.js owner APIs (server + API key).
+  SiteCopy: a
+    .model({
+      key: a.string().required(),
+      json: a.string().required(),
+    })
+    .authorization((allow) => [allow.publicApiKey()]),
+
+  SiteService: a
+    .model({
+      name: a.string().required(),
+      blurb: a.string().required(),
+      price: a.string().required(),
+      sortOrder: a.integer().required(),
+    })
+    .authorization((allow) => [allow.publicApiKey()]),
+
+  SiteImage: a
+    .model({
+      slot: a.string().required(),
+      contentType: a.string().required(),
+      dataBase64: a.string().required(),
+    })
+    .authorization((allow) => [allow.publicApiKey()]),
 });
 
 export type Schema = ClientSchema<typeof schema>;
@@ -60,7 +85,7 @@ export const data = defineData({
   authorizationModes: {
     defaultAuthorizationMode: "identityPool",
     apiKeyAuthorizationMode: {
-      expiresInDays: 30,
+      expiresInDays: 365,
     },
   },
 });

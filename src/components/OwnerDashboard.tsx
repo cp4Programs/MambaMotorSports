@@ -1,8 +1,9 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
+import { OwnerCms } from "@/components/OwnerCms";
 
-type Tab = "inquiries" | "appointments" | "invoices";
+type Tab = "website" | "inquiries" | "appointments" | "invoices";
 
 type ContactRow = {
   id: string;
@@ -58,7 +59,7 @@ export function OwnerDashboard() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
-  const [tab, setTab] = useState<Tab>("inquiries");
+  const [tab, setTab] = useState<Tab>("website");
   const [contacts, setContacts] = useState<ContactRow[]>([]);
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
@@ -171,6 +172,7 @@ export function OwnerDashboard() {
   }
 
   const tabs: { id: Tab; label: string }[] = [
+    { id: "website", label: "Website" },
     { id: "inquiries", label: "Inquiries" },
     { id: "appointments", label: "Appointments" },
     { id: "invoices", label: "Invoices" },
@@ -211,7 +213,9 @@ export function OwnerDashboard() {
         })}
       </div>
 
-      {loading ? (
+      {tab === "website" && token ? <OwnerCms token={token} /> : null}
+
+      {loading && tab !== "website" ? (
         <p className="text-sm text-[oklch(40%_0.015_260)]">Loading…</p>
       ) : null}
 

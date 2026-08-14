@@ -25,6 +25,8 @@ export const metadata: Metadata = {
     "Precision diagnostics and transparent pricing for BMW, Audi, and Mercedes-Benz in Los Angeles & Orange County.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default function RootLayout({
   children,
 }: Readonly<{

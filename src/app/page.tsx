@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { SERVICES, TESTIMONIALS } from "@/lib/content";
+import { TESTIMONIALS } from "@/lib/content";
+import { loadPublishedSite } from "@/server/published-site";
 
 const pillars = [
   {
@@ -23,25 +24,24 @@ const pillars = [
   },
 ];
 
-export default function HomePage() {
-  const homeServices = SERVICES.slice(0, 3);
+export default async function HomePage() {
+  const { copy, services } = await loadPublishedSite();
+  const homeServices = services.slice(0, 3);
 
   return (
     <div>
       <section className="relative flex flex-wrap items-center gap-14 overflow-hidden bg-[radial-gradient(ellipse_at_20%_10%,oklch(32%_0.15_305_/_0.35),transparent_55%),radial-gradient(ellipse_at_85%_90%,oklch(50%_0.19_25_/_0.22),transparent_50%),oklch(16%_0.015_255)] px-[6vw] py-[110px]">
         <div className="min-w-[280px] flex-1 basis-[480px]">
           <p className="font-display mb-[18px] text-[13px] font-semibold tracking-[0.3em] text-[oklch(64%_0.14_305)]">
-            BMW · AUDI · MERCEDES-BENZ SPECIALISTS
+            {copy.heroEyebrow}
           </p>
           <h1 className="font-display mb-6 text-[clamp(2.4rem,5vw,4.2rem)] font-bold leading-[1.05] tracking-[0.01em]">
-            <span className="text-[oklch(78%_0.1_85)]">Mamba Mentality</span>,
+            <span className="text-[oklch(78%_0.1_85)]">{copy.heroTitleAccent}</span>,
             <br />
-            Under the Hood.
+            {copy.heroTitleRest}
           </h1>
           <p className="mb-9 max-w-[520px] text-lg leading-relaxed text-[oklch(78%_0.012_260)]">
-            Precision diagnostics, relentless attention to detail, and transparent
-            pricing for the cars that demand it. We take your repair as seriously as
-            you do.
+            {copy.heroBody}
           </p>
           <div className="flex flex-wrap gap-4">
             <Link

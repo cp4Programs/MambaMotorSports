@@ -30,13 +30,14 @@ const empty = (serviceType: string): BookingForm => ({
   issue: "",
 });
 
-export function BookForm() {
+export function BookForm({ serviceNames }: { serviceNames: string[] }) {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const names = serviceNames.length ? serviceNames : SERVICE_NAMES;
   const initialService = useMemo(() => {
     const q = searchParams.get("service") ?? "";
-    return SERVICE_NAMES.includes(q) ? q : SERVICE_NAMES[0];
-  }, [searchParams]);
+    return names.includes(q) ? q : names[0];
+  }, [searchParams, names]);
 
   const [form, setForm] = useState<BookingForm>(() => empty(initialService));
   const [submitted, setSubmitted] = useState(false);
@@ -82,7 +83,7 @@ export function BookForm() {
           type="button"
           onClick={() => {
             setSubmitted(false);
-            setForm(empty(SERVICE_NAMES[0]));
+            setForm(empty(names[0]));
             router.replace("/book");
           }}
           className="rounded bg-[oklch(20%_0.015_260)] px-[22px] py-3 text-sm font-bold text-[oklch(97%_0.004_260)]"
@@ -172,7 +173,7 @@ export function BookForm() {
           value={form.serviceType}
           onChange={(e) => update("serviceType", e.target.value)}
         >
-          {SERVICE_NAMES.map((s) => (
+          {names.map((s) => (
             <option key={s} value={s}>
               {s}
             </option>
