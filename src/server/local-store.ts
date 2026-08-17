@@ -3,7 +3,7 @@ import path from "path";
 import { DEFAULT_SITE_COPY, defaultServices } from "@/lib/site";
 import type { SiteCopy, SiteService } from "@/lib/site";
 import { mergeSiteCopy, type SiteImageRecord } from "./site-utils";
-import type { Booking, ContactMessage, Invoice } from "./types";
+import type { Booking, ContactMessage, Invoice, OwnerCredential } from "./types";
 
 type StoreShape = {
   bookings: Booking[];
@@ -12,6 +12,7 @@ type StoreShape = {
   siteCopy?: SiteCopy;
   siteServices?: SiteService[];
   siteImages?: SiteImageRecord[];
+  ownerCredential?: OwnerCredential;
 };
 
 const DATA_DIR = path.join(process.cwd(), ".data");
@@ -177,6 +178,19 @@ export async function localSetInvoiceSession(
   );
   if (idx < 0) return;
   store.invoices[idx].stripeSessionId = stripeSessionId;
+  await writeStore(store);
+}
+
+export async function localGetOwnerCredential(): Promise<OwnerCredential | null> {
+  const store = await ensureStore();
+  return store.ownerCredential ?? null;
+}
+
+export async function localSaveOwnerCredential(
+  credential: OwnerCredential,
+): Promise<void> {
+  const store = await ensureStore();
+  store.ownerCredential = credential;
   await writeStore(store);
 }
 

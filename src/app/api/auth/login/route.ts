@@ -3,7 +3,7 @@ import { z } from "zod";
 import {
   createOwnerToken,
   isOwnerAuthConfigured,
-  verifyOwnerCredentials,
+  verifyOwnerLogin,
 } from "@/server/auth";
 
 const schema = z.object({
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
       );
     }
     const body = schema.parse(await req.json());
-    if (!verifyOwnerCredentials(body.email, body.password)) {
+    if (!(await verifyOwnerLogin(body.email, body.password))) {
       return NextResponse.json(
         { error: "Invalid email or password." },
         { status: 401 },

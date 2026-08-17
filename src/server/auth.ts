@@ -1,5 +1,13 @@
 import { createHmac, timingSafeEqual } from "crypto";
+import {
+  MIN_PASSWORD_LENGTH,
+  hashPassword,
+  passwordFingerprint,
+  verifyPassword,
+} from "./password";
+import { getOwnerCredential, saveOwnerCredential } from "./repo";
 import generated from "./runtime-env.generated.json";
+import type { OwnerCredential } from "./types";
 
 const TOKEN_TTL_MS = 1000 * 60 * 60 * 12; // 12 hours
 const IS_PROD = process.env.NODE_ENV === "production";
@@ -81,6 +89,92 @@ export function verifyOwnerCredentials(email: string, password: string): boolean
   const emailOk = email.trim().toLowerCase() === expectedEmail;
   const passOk = constantTimeEquals(password, expectedPassword);
   return emailOk && passOk;
+}
+
+/**
+ * The owner can set their own password from the dashboard; it is stored as a
+ * salted hash. Rotating OWNER_PASSWORD in the Amplify console retires that
+ * stored password, which is the admin recovery path if they forget it.
+ */
+async function storedCredential(): Promise<OwnerCredential | null> {
+  try {
+    return await getOwnerCredential();
+  } catch (err) {
+    // Missing table / unreachable data layer must not lock the owner out.
+    console.error("[auth] could not read stored credential", err);
+    return null;
+  }
+}
+
+function envFingerprint(): string | undefined {
+  const envPassword = ownerPassword();
+  return envPassword ? passwordFingerprint(envPassword) : undefined;
+}
+
+function storedPasswordIsCurrent(credential: OwnerCredential): boolean {
+  const current = envFingerprint();
+  if (!credential.envFingerprint || !current) return true;
+  return credential.envFingerprint === current;
+}
+
+async function passwordMatches(password: string): Promise<boolean> {
+  const credential = await storedCredential();
+  if (credential && storedPasswordIsCurrent(credential)) {
+    return verifyPassword(password, credential.passwordHash);
+  }
+  const envPassword = ownerPassword();
+  return envPassword ? constantTimeEquals(password, envPassword) : false;
+}
+
+export async function verifyOwnerLogin(
+  email: string,
+  password: string,
+): Promise<boolean> {
+  const expectedEmail = ownerEmail();
+  if (!expectedEmail || !ownerSecret()) return false;
+  if (email.trim().toLowerCase() !== expectedEmail) return false;
+  return passwordMatches(password);
+}
+
+export type PasswordChangeResult =
+  | { ok: true }
+  | { ok: false; status: number; error: string };
+
+export async function changeOwnerPassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<PasswordChangeResult> {
+  if (newPassword.length < MIN_PASSWORD_LENGTH) {
+    return {
+      ok: false,
+      status: 400,
+      error: `New password must be at least ${MIN_PASSWORD_LENGTH} characters.`,
+    };
+  }
+  if (!(await passwordMatches(currentPassword))) {
+    return { ok: false, status: 401, error: "Current password is incorrect." };
+  }
+  if (await passwordMatches(newPassword)) {
+    return {
+      ok: false,
+      status: 400,
+      error: "New password must be different from the current one.",
+    };
+  }
+  try {
+    await saveOwnerCredential({
+      passwordHash: hashPassword(newPassword),
+      envFingerprint: envFingerprint(),
+    });
+  } catch (err) {
+    console.error("[auth] could not save new password", err);
+    return {
+      ok: false,
+      status: 503,
+      error: "Could not save the new password. Try again shortly.",
+    };
+  }
+  return { ok: true };
 }
 
 export function createOwnerToken(email: string): string {

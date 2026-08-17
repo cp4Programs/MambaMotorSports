@@ -2,6 +2,7 @@ import { DEFAULT_SITE_COPY, SITE_KEY, defaultServices } from "@/lib/site";
 import type { SiteCopy, SiteService } from "@/lib/site";
 import { getAmplifyDataClient, throwIfErrors } from "./amplify-client";
 import { mergeSiteCopy, type SiteImageRecord } from "./site-utils";
+import type { OwnerCredential } from "./types";
 
 function requireClient() {
   const client = getAmplifyDataClient();
@@ -197,6 +198,46 @@ export async function amplifySaveSiteImage(
     });
     throwIfErrors(created.errors, "create SiteImage");
   }
+}
+
+export async function amplifyGetOwnerCredential(): Promise<OwnerCredential | null> {
+  const client = requireClient();
+  const { data, errors } = await client.models.OwnerCredential.list({
+    filter: { key: { eq: SITE_KEY } },
+  });
+  throwIfErrors(errors, "list OwnerCredential");
+  const row = data[0];
+  if (!row?.passwordHash) return null;
+  return {
+    passwordHash: row.passwordHash,
+    envFingerprint: row.envFingerprint ?? undefined,
+  };
+}
+
+export async function amplifySaveOwnerCredential(
+  credential: OwnerCredential,
+): Promise<void> {
+  const client = requireClient();
+  const { data, errors } = await client.models.OwnerCredential.list({
+    filter: { key: { eq: SITE_KEY } },
+  });
+  throwIfErrors(errors, "list OwnerCredential");
+  const existing = data[0];
+  if (existing) {
+    const updated = await client.models.OwnerCredential.update({
+      id: existing.id,
+      passwordHash: credential.passwordHash,
+      envFingerprint: credential.envFingerprint,
+    });
+    throwIfErrors(updated.errors, "update OwnerCredential");
+    return;
+  }
+  const created = await client.models.OwnerCredential.create({
+    key: SITE_KEY,
+    passwordHash: credential.passwordHash,
+    envFingerprint: credential.envFingerprint,
+  });
+  throwIfErrors(created.errors, "create OwnerCredential");
 }
 
 export async function amplifyDeleteSiteImage(slot: string): Promise<void> {

@@ -1,9 +1,11 @@
 import {
   amplifyDeleteSiteImage,
+  amplifyGetOwnerCredential,
   amplifyGetSiteCopy,
   amplifyGetSiteImage,
   amplifyListSiteImageSlots,
   amplifyListSiteServices,
+  amplifySaveOwnerCredential,
   amplifySaveSiteCopy,
   amplifySaveSiteImage,
   amplifySaveSiteServices,
@@ -14,6 +16,7 @@ import {
   localCreateContact,
   localDeleteSiteImage,
   localGetInvoiceByNumber,
+  localGetOwnerCredential,
   localGetSiteCopy,
   localGetSiteImage,
   localListBookings,
@@ -22,6 +25,7 @@ import {
   localListSiteImageSlots,
   localListSiteServices,
   localMarkInvoicePaid,
+  localSaveOwnerCredential,
   localSaveSiteCopy,
   localSaveSiteImage,
   localSaveSiteServices,
@@ -29,7 +33,7 @@ import {
 } from "./local-store";
 import type { SiteCopy, SiteService } from "@/lib/site";
 import type { SiteImageRecord } from "./site-utils";
-import type { Booking, ContactMessage, Invoice } from "./types";
+import type { Booking, ContactMessage, Invoice, OwnerCredential } from "./types";
 
 function amplifyDataEnabled(): boolean {
   return hasAmplifyData();
@@ -75,6 +79,20 @@ export async function setInvoiceSession(
   stripeSessionId: string,
 ): Promise<void> {
   return localSetInvoiceSession(number, stripeSessionId);
+}
+
+export async function getOwnerCredential(): Promise<OwnerCredential | null> {
+  return amplifyDataEnabled()
+    ? amplifyGetOwnerCredential()
+    : localGetOwnerCredential();
+}
+
+export async function saveOwnerCredential(
+  credential: OwnerCredential,
+): Promise<void> {
+  return amplifyDataEnabled()
+    ? amplifySaveOwnerCredential(credential)
+    : localSaveOwnerCredential(credential);
 }
 
 export async function getSiteCopy(): Promise<SiteCopy> {
