@@ -25,6 +25,11 @@ export type ContactMessage = {
   createdAt: string;
 };
 
+export type OwnerCredential = {
+  passwordHash: string;
+  envFingerprint?: string;
+};
+
 export type InvoiceItem = {
   desc: string;
   amt: number;

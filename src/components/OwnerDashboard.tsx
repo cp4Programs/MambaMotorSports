@@ -2,8 +2,9 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { OwnerCms } from "@/components/OwnerCms";
+import { OwnerPasswordForm } from "@/components/OwnerPasswordForm";
 
-type Tab = "website" | "inquiries" | "appointments" | "invoices";
+type Tab = "website" | "inquiries" | "appointments" | "invoices" | "settings";
 
 type ContactRow = {
   id: string;
@@ -176,6 +177,7 @@ export function OwnerDashboard() {
     { id: "inquiries", label: "Inquiries" },
     { id: "appointments", label: "Appointments" },
     { id: "invoices", label: "Invoices" },
+    { id: "settings", label: "Settings" },
   ];
 
   return (
@@ -215,7 +217,9 @@ export function OwnerDashboard() {
 
       {tab === "website" && token ? <OwnerCms token={token} /> : null}
 
-      {loading && tab !== "website" ? (
+      {tab === "settings" && token ? <OwnerPasswordForm token={token} /> : null}
+
+      {loading && tab !== "website" && tab !== "settings" ? (
         <p className="text-sm text-[oklch(40%_0.015_260)]">Loading…</p>
       ) : null}
 

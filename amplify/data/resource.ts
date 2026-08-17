@@ -76,6 +76,17 @@ const schema = a.schema({
       dataBase64: a.string().required(),
     })
     .authorization((allow) => [allow.publicApiKey()]),
+
+  // Owner-chosen dashboard password (salted scrypt hash, never plaintext).
+  // envFingerprint records which OWNER_PASSWORD was current when it was set,
+  // so rotating that env var acts as an admin reset.
+  OwnerCredential: a
+    .model({
+      key: a.string().required(),
+      passwordHash: a.string().required(),
+      envFingerprint: a.string(),
+    })
+    .authorization((allow) => [allow.publicApiKey()]),
 });
 
 export type Schema = ClientSchema<typeof schema>;
