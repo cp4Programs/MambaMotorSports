@@ -1,7 +1,23 @@
 import { createHmac, timingSafeEqual } from "crypto";
+import generated from "./runtime-env.generated.json";
 
 const TOKEN_TTL_MS = 1000 * 60 * 60 * 12; // 12 hours
 const IS_PROD = process.env.NODE_ENV === "production";
+
+const baked = generated as Record<string, string | undefined>;
+
+function bakedEnv(key: string): string | undefined {
+  const value = baked[key];
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  return trimmed.length ? trimmed : undefined;
+}
+
+function readEnv(key: string): string | undefined {
+  const live = process.env[key]?.trim();
+  if (live) return live;
+  return bakedEnv(key);
+}
 
 /**
  * Owner auth is fail-closed: in production every value MUST come from the
@@ -11,19 +27,19 @@ const IS_PROD = process.env.NODE_ENV === "production";
  * `npm run dev` works without setup; those must never reach production.
  */
 function ownerSecret(): string | null {
-  const s = process.env.OWNER_SESSION_SECRET;
+  const s = readEnv("OWNER_SESSION_SECRET");
   if (s && s.length >= 16) return s;
   return IS_PROD ? null : "dev-insecure-session-secret-not-for-prod";
 }
 
 function ownerEmail(): string | null {
-  const e = process.env.OWNER_EMAIL;
-  if (e) return e.trim().toLowerCase();
+  const e = readEnv("OWNER_EMAIL");
+  if (e) return e.toLowerCase();
   return IS_PROD ? null : "owner@example.com";
 }
 
 function ownerPassword(): string | null {
-  const p = process.env.OWNER_PASSWORD;
+  const p = readEnv("OWNER_PASSWORD");
   if (p) return p;
   return IS_PROD ? null : "dev-owner-password";
 }
@@ -37,6 +53,24 @@ function constantTimeEquals(a: string, b: string): boolean {
   } catch {
     return false;
   }
+}
+
+export function isOwnerAuthConfigured(): boolean {
+  return Boolean(ownerEmail() && ownerPassword() && ownerSecret());
+}
+
+/** Booleans only — used to diagnose Amplify env wiring without leaking secrets. */
+export function ownerAuthStatus(): {
+  email: boolean;
+  password: boolean;
+  secret: boolean;
+} {
+  const secret = readEnv("OWNER_SESSION_SECRET");
+  return {
+    email: Boolean(readEnv("OWNER_EMAIL")),
+    password: Boolean(readEnv("OWNER_PASSWORD")),
+    secret: Boolean(secret && secret.length >= 16),
+  };
 }
 
 export function verifyOwnerCredentials(email: string, password: string): boolean {
