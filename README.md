@@ -21,14 +21,16 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-Default owner login (change via env):
+Local owner login (from `.env.example` / `.env.local`):
 
-- Email: `owner@mambamotorsports.com`
-- Password: `mamba-owner-dev`
+- Email: `owner@example.com`
+- Password: `dev-owner-password`
 
-Demo invoices: `MMS-1042`, `MMS-1077`
+Production login is **not** those defaults. Set `OWNER_EMAIL`, `OWNER_PASSWORD`, and `OWNER_SESSION_SECRET` in the Amplify console, then redeploy. Owner dashboard: [https://www.mambamotorsportsgroup.com/dashboard](https://www.mambamotorsportsgroup.com/dashboard)
 
-Local data is stored under `.data/store.json` until Amplify Data is deployed and wired.
+Demo invoices (local JSON only): `MMS-1042`, `MMS-1077`
+
+Local data is stored under `.data/store.json`. CMS copy/photos/services use Amplify Data when `amplify_outputs.json` is present.
 
 ### Amplify sandbox (backend)
 
@@ -60,7 +62,7 @@ Amplify Hosting is the closest git-push deploy experience on AWS.
 | `AWS_REGION` | e.g. `us-west-2` |
 | `STRIPE_SECRET_KEY` | Stripe secret |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
-| `NEXT_PUBLIC_APP_URL` | Amplify app URL (or custom domain) |
+| `NEXT_PUBLIC_APP_URL` | `https://www.mambamotorsportsgroup.com` |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key |
 
 6. After first deploy, point a Stripe webhook to `https://<your-app>/api/webhooks/stripe` for `checkout.session.completed`.

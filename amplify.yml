@@ -12,6 +12,10 @@ frontend:
         - npm install
     build:
       commands:
+        # Amplify console env vars reach the Next.js server two ways:
+        # 1) .env.production (AWS-documented), 2) a JSON module bundled into the build.
+        - env | grep -e OWNER_EMAIL -e OWNER_PASSWORD -e OWNER_SESSION_SECRET -e NOTIFY_EMAIL -e SES_FROM_EMAIL -e STRIPE_SECRET_KEY -e STRIPE_WEBHOOK_SECRET -e NEXT_PUBLIC_ -e ALLOW_DEV_PAYMENTS >> .env.production || true
+        - node scripts/write-runtime-env.js
         - npm run build
   artifacts:
     baseDirectory: .next
